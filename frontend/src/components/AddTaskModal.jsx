@@ -1,111 +1,92 @@
 import { useState } from 'react';
-import { X, Plus, Loader2 } from 'lucide-react';
 
 export default function AddTaskModal({ onAdd, onClose }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ title: '', description: '', priority: 'medium' });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setError('Title is required.');
-      return;
-    }
-    setError('');
-    setLoading(true);
-    try {
-      await onAdd({ title: title.trim(), description: description.trim() });
-      onClose();
-    } catch (err) {
-      setError(err?.response?.data?.error || 'Failed to create task.');
-    } finally {
-      setLoading(false);
-    }
+    if (!formData.title.trim()) return;
+    onAdd(formData);
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-surface-container-lowest)]/80 backdrop-blur-md p-4">
+      
+      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-200">
+        <div className="relative rounded-3xl bg-[var(--color-surface-container)]/80 p-8 shadow-2xl backdrop-blur-3xl ghost-border overflow-hidden">
+          
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[var(--color-primary)]/20 rounded-full blur-[50px] pointer-events-none"></div>
 
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-indigo-500/20 bg-gray-900 p-6 shadow-2xl shadow-indigo-900/30 animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-white">New Task</h2>
-            <p className="mt-0.5 text-sm text-gray-500">Fill in the details below</p>
-          </div>
-          <button
+          <button 
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white"
+            className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition bg-white/5 hover:bg-[var(--color-surface-bright)] rounded-full"
           >
-            <X size={18} />
+            <span className="material-symbols-outlined text-[22px]">close</span>
           </button>
+
+          <h2 className="text-2xl font-headline font-extrabold tracking-tight text-[var(--color-on-surface)] mb-6">
+            Create New Task
+          </h2>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6 relative z-10">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-label uppercase tracking-widest text-[var(--color-on-surface-variant)] px-2">Task Title</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-outline-variant)] group-focus-within:text-[var(--color-primary)] transition-colors">title</span>
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="e.g. Design meeting at 3 PM"
+                  value={formData.title}
+                  onChange={e => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full h-14 bg-[var(--color-surface-container-lowest)]/40 rounded-xl ghost-border pl-12 pr-4 text-[var(--color-on-surface)] placeholder:text-[var(--color-outline)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 border-none font-body transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-label uppercase tracking-widest text-[var(--color-on-surface-variant)] px-2">Description (Optional)</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-4 top-4 text-[var(--color-outline-variant)] group-focus-within:text-[var(--color-primary)] transition-colors">notes</span>
+                <textarea
+                  placeholder="Add any extra details here..."
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full h-24 bg-[var(--color-surface-container-lowest)]/40 rounded-xl ghost-border pl-12 pr-4 py-4 text-[var(--color-on-surface)] placeholder:text-[var(--color-outline)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 border-none font-body transition-all resize-none scrollbar-thin"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-label uppercase tracking-widest text-[var(--color-on-surface-variant)] px-2">Priority</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-outline-variant)] group-focus-within:text-[var(--color-primary)] transition-colors pointer-events-none">flag</span>
+                <select
+                  value={formData.priority}
+                  onChange={e => setFormData({ ...formData, priority: e.target.value })}
+                  className="w-full h-14 bg-[var(--color-surface-container-lowest)]/40 rounded-xl ghost-border pl-12 pr-10 text-[var(--color-on-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 border-none font-body transition-all appearance-none"
+                >
+                  <option value="low" className="bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)]">Low</option>
+                  <option value="medium" className="bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)]">Medium</option>
+                  <option value="high" className="bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)]">High</option>
+                </select>
+                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-outline-variant)] pointer-events-none">expand_more</span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={!formData.title.trim()}
+                className="w-full h-14 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dim)] text-[var(--color-on-primary)] font-headline font-semibold rounded-full shadow-[0_10px_25px_rgba(186,158,255,0.2)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">add_task</span>
+                Create Task
+              </button>
+            </div>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Title */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-300">
-              Title <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              id="task-title"
-              value={title}
-              onChange={(e) => { setTitle(e.target.value); setError(''); }}
-              placeholder="e.g. Review pull request"
-              className={`w-full rounded-xl border bg-gray-800 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none transition focus:ring-2 ${
-                error
-                  ? 'border-red-500/50 focus:ring-red-500/30'
-                  : 'border-gray-700 focus:border-indigo-500/50 focus:ring-indigo-500/20'
-              }`}
-              autoFocus
-            />
-            {error && <p className="mt-1.5 text-xs text-red-400">{error}</p>}
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-300">
-              Description <span className="text-gray-600">(optional)</span>
-            </label>
-            <textarea
-              id="task-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add more context about this task…"
-              rows={3}
-              className="w-full resize-none rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none transition focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-400 transition hover:bg-gray-800 hover:text-white"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              id="add-task-submit"
-              disabled={loading}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
-            >
-              {loading ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
-              {loading ? 'Adding…' : 'Add Task'}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   );

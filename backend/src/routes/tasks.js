@@ -39,19 +39,16 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/tasks — create a new task
 router.post('/', async (req, res) => {
-  const { title, description, status } = req.body;
+  const { title, description, priority = 'medium' } = req.body;
 
   if (!title || title.trim() === '') {
-    return res.status(400).json({ success: false, error: 'Title is required and cannot be empty.' });
+    return res.status(400).json({ success: false, error: 'Title is required.' });
   }
-
-  const validStatuses = ['pending', 'completed'];
-  const taskStatus = validStatuses.includes(status) ? status : 'pending';
 
   try {
     const result = await db.query(
-      'INSERT INTO tasks (user_id, title, description, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [req.user.id, title.trim(), description ? description.trim() : '', taskStatus]
+      'INSERT INTO tasks (user_id, title, description, status, priority) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [req.user.id, title.trim(), description ? description.trim() : '', 'pending', priority]
     );
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (err) {

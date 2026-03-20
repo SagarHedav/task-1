@@ -1,18 +1,163 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Inter', sans-serif;
+
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-bright: var(--surface-bright);
+  
+  --color-background: var(--background);
+  --color-on-background: var(--on-background);
+  
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  
+  --color-primary: var(--primary);
+  --color-primary-dim: var(--primary-dim);
+  --color-on-primary: var(--on-primary);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-dim: var(--secondary-dim);
+  
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-dim: var(--tertiary-dim);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-on-tertiary: var(--on-tertiary);
+  
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  
+  --color-error: var(--error);
+  --color-error-dim: var(--error-dim);
+  --color-error-container: var(--error-container);
+  
+  --color-orb-1: var(--orb-1);
+  --color-orb-2: var(--orb-2);
+  --color-orb-3: var(--orb-3);
+}
+
+:root {
+  /* LIGHT THEME: Neomorphism + Liquid Glass */
+  --background: #f0f4f8; 
+  --on-background: #1a202c;
+  
+  --surface-container: #ffffff;
+  --surface-container-low: #e2e8f0;
+  --surface-container-lowest: #ffffff;
+  --surface-container-high: #edf2f7;
+  --surface-bright: #ffffff;
+  
+  --on-surface: #2d3748;
+  --on-surface-variant: #718096;
+  
+  --primary: #8352FD; 
+  --primary-dim: #6b46c1;
+  --on-primary: #ffffff;
+  
+  --secondary: #0bc5ea; 
+  --secondary-dim: #00a3c4;
+  
+  --tertiary: #ed64a6; 
+  --tertiary-dim: #d53f8c;
+  --tertiary-container: #ffd3eb;
+  --on-tertiary-container: #702459;
+  --on-tertiary: #ffffff;
+  
+  --outline: #a0aec0;
+  --outline-variant: #cbd5e0;
+  
+  --error: #fc8181;
+  --error-dim: #e53e3e;
+  --error-container: #fed7d7;
+
+  --orb-1: #0bc5ea;
+  --orb-2: #8352FD;
+  --orb-3: #ed64a6;
+
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --neo-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+}
+
+.dark {
+  /* DARK THEME: Original Liquid Intelligence */
+  --background: #060e20;
+  --on-background: #dee5ff;
+  
+  --surface-container: #0f1930;
+  --surface-container-low: #091328;
+  --surface-container-lowest: #000000;
+  --surface-container-high: #141f38;
+  --surface-bright: #1f2b49;
+  
+  --on-surface: #dee5ff;
+  --on-surface-variant: #a3aac4;
+  
+  --primary: #ba9eff;
+  --primary-dim: #8455ef;
+  --on-primary: #39008c;
+  
+  --secondary: #53ddfc;
+  --secondary-dim: #40ceed;
+  
+  --tertiary: #ff6daf;
+  --tertiary-dim: #ff67ad;
+  --tertiary-container: #fa53a4;
+  --on-tertiary-container: #2f0018;
+  --on-tertiary: #4b002a;
+  
+  --outline: #6d758c;
+  --outline-variant: #40485d;
+  
+  --error: #ff6e84;
+  --error-dim: #d73357;
+  --error-container: #a70138;
+
+  --orb-1: #40ceed;
+  --orb-2: #ba9eff;
+  --orb-3: #ff67ad;
+
+  --glass-border: rgba(64, 72, 93, 0.4);
+  --neo-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
   body {
-    @apply bg-gray-950 text-gray-100 font-sans antialiased min-h-screen;
+    background-color: var(--color-background);
+    color: var(--color-on-background);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
 @layer utilities {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    font-size: 20px;
+  }
+  
+  .liquid-orb {
+    position: absolute;
+    filter: blur(100px);
+    z-index: 0;
+    border-radius: 9999px;
+    pointer-events: none;
+    transition: background-color 0.5s ease;
+  }
+
+  .ghost-border {
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--neo-shadow);
+  }
+
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
+    scrollbar-color: var(--color-on-surface-variant) transparent;
   }
 }

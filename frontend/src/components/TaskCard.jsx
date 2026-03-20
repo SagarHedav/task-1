@@ -1,84 +1,73 @@
-import { CheckCircle, Circle, Trash2, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function TaskCard({ task, onToggle, onDelete }) {
   const isCompleted = task.status === 'completed';
+  
+  // Decide the glowing left border color based on status or priority
+  const glowColor = isCompleted 
+    ? 'border-l-[var(--color-tertiary-dim)]'
+    : 'border-l-[var(--color-secondary-fixed)]';
 
   return (
-    <div
-      className={`group relative flex flex-col gap-3 rounded-2xl border p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl ${
-        isCompleted
-          ? 'border-green-500/20 bg-green-950/20 shadow-green-900/10'
-          : 'border-indigo-500/20 bg-gray-900 shadow-indigo-900/10'
-      }`}
-    >
-      {/* Status badge */}
-      <div className="flex items-center justify-between">
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide ${
-            isCompleted
-              ? 'bg-green-500/15 text-green-400'
-              : 'bg-indigo-500/15 text-indigo-400'
-          }`}
-        >
-          {isCompleted ? (
-            <CheckCircle size={12} />
-          ) : (
-            <Circle size={12} />
-          )}
-          {isCompleted ? 'Completed' : 'Pending'}
-        </span>
-
-        <div className="flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          {/* Toggle button */}
-          <button
-            onClick={() => onToggle(task.id)}
-            title={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
-            className={`rounded-lg p-2 text-xs font-medium transition-all duration-200 ${
-              isCompleted
-                ? 'hover:bg-yellow-500/20 hover:text-yellow-400 text-gray-400'
-                : 'hover:bg-green-500/20 hover:text-green-400 text-gray-400'
-            }`}
-          >
-            {isCompleted ? <Circle size={16} /> : <CheckCircle size={16} />}
-          </button>
-
-          {/* Delete button */}
-          <button
-            onClick={() => onDelete(task.id)}
-            title="Delete task"
-            className="rounded-lg p-2 text-gray-400 transition-all duration-200 hover:bg-red-500/20 hover:text-red-400"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Title */}
-      <h3
-        className={`text-base font-semibold leading-snug transition-all ${
-          isCompleted ? 'text-gray-400 line-through' : 'text-white'
+    <div className={`relative flex items-center gap-4 rounded-3xl bg-[var(--color-surface-container)]/40 p-5 ghost-border shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:bg-[var(--color-surface-container)]/60 border-l-4 ${glowColor}`}>
+      
+      {/* Checkbox */}
+      <button
+        onClick={() => onToggle(task.id)}
+        className={`w-7 h-7 shrink-0 rounded-full border-2 flex items-center justify-center transition-all ${
+          isCompleted 
+            ? 'bg-[var(--color-tertiary-dim)] border-[var(--color-tertiary-dim)] text-[var(--color-on-tertiary)]' 
+            : 'border-[var(--color-outline)] hover:border-[var(--color-secondary-dim)] text-transparent'
         }`}
       >
-        {task.title}
-      </h3>
+        <span className="material-symbols-outlined text-[16px]">check</span>
+      </button>
 
-      {/* Description */}
-      {task.description && (
-        <p
-          className={`text-sm leading-relaxed ${
-            isCompleted ? 'text-gray-600' : 'text-gray-400'
-          }`}
-        >
-          {task.description}
-        </p>
-      )}
-
-      {/* Footer */}
-      <div className="mt-auto flex items-center gap-1.5 pt-2 text-xs text-gray-600">
-        <Clock size={11} />
-        <span>{format(new Date(task.created_at), 'MMM d, yyyy · h:mm a')}</span>
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-3">
+          <h3 className={`truncate font-headline font-semibold text-lg transition-all ${isCompleted ? 'text-[var(--color-on-surface-variant)] opacity-50 line-through' : 'text-[var(--color-on-surface)]'}`}>
+            {task.title}
+          </h3>
+          {!isCompleted && task.priority && (
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[8px] font-label font-bold uppercase tracking-widest ring-1 ring-inset inline-flex items-center gap-1 ${
+              task.priority === 'high' 
+                ? 'bg-[var(--color-error-container)]/20 text-[var(--color-error-dim)] ring-[var(--color-error-dim)]/30' 
+              : task.priority === 'low'
+                ? 'bg-[var(--color-surface-bright)]/50 text-[var(--color-outline-variant)] ring-[var(--color-outline-variant)]/30'
+                : 'bg-[var(--color-surface-bright)] text-[var(--color-secondary-fixed)] ring-[var(--color-secondary-fixed)]/20'
+            }`}>
+              {task.priority === 'high' && <span className="w-1 h-1 rounded-full bg-[var(--color-error-dim)] animate-pulse"></span>}
+              {task.priority} Priority
+            </span>
+          )}
+        </div>
+        {task.description && (
+          <p className="mt-1 truncate text-sm font-body text-[var(--color-on-surface-variant)]">
+            {task.description}
+          </p>
+        )}
       </div>
+
+      {/* Right Meta & Actions */}
+      <div className="flex items-center gap-4 shrink-0">
+        <div className={`flex items-center gap-1.5 text-xs font-label font-medium uppercase tracking-widest transition-colors ${isCompleted ? 'text-[var(--color-on-surface-variant)] opacity-40' : 'text-[var(--color-on-surface-variant)] opacity-60'}`}>
+          <span className="material-symbols-outlined text-[14px]">
+            {isCompleted ? 'task_alt' : 'schedule'}
+          </span>
+          {isCompleted ? 'Done' : formatDistanceToNow(new Date(task.created_at), { addSuffix: true })}
+        </div>
+
+        {/* Delete */}
+        <button
+          onClick={() => onDelete(task.id)}
+          className="text-[var(--color-on-surface-variant)] opacity-40 hover:opacity-100 hover:text-[var(--color-error)] transition-all p-2 rounded-full hover:bg-[var(--color-error-container)]/20"
+          aria-label="Delete task"
+        >
+          <span className="material-symbols-outlined text-[18px]">delete</span>
+        </button>
+      </div>
+
     </div>
   );
 }
