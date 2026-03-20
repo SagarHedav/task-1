@@ -1,226 +1,56 @@
-# TaskFlow v2 — Authentication + PostgreSQL Task Manager
+# TaskFlow v3 — Liquid Intelligence
 
-A full-stack task management application featuring **User Authentication (JWT)** and **PostgreSQL (NeonDB)** data persistence. Built with **Node.js + Express**, **React + Tailwind CSS v4**, and **Docker**.
+A premium, glassmorphic task management application with real-time analytics, calendar integration, and a sophisticated theme engine.
 
----
+![Liquid Intelligence Theme](https://github.com/SagarHedav/task-1/raw/main/preview.png)
 
-## 🚀 Quick Start with Docker
+## ✨ Features
 
+- **Liquid Glass UI**: Sophisticated "Liquid Intelligence" aesthetic with deep frosting, glowing orbs, and fluid animations.
+- **Dual Theme Engine**: 
+  - **Dark Mode**: Original high-contrast liquid intelligence design.
+  - **Light Mode**: Breathtaking Neomorphic design with soft 3D shadows.
+- **Intelligent Analytics**:
+  - **Workspace Overview**: Real-time completion progress tracking with dynamic gradient meters.
+  - **Live Velocity**: Animated productivity metrics and trends.
+- **Guest Mode & Cloud Sync**: Use instantly as a guest with local storage, or sign in to persist data via PostgreSQL (NeonDB).
+- **Pro Calendar**: Full-featured event and reminder management (Exclusive for registered users).
+- **Smart Sorting & Search**: Align tasks by date, priority, or jump to specific items instantly.
+
+## 🚀 Tech Stack
+
+- **Frontend**: React, Vite, Tailwind CSS (V4), Lucide, Date-fns.
+- **Backend**: Node.js, Express, PostgreSQL (NeonDB).
+- **Auth**: JWT-based session management with Bcrypt password hashing.
+
+## 🛠️ Installation
+
+### 1. Clone the Repo
 ```bash
-# Clone and start all services
-git clone <your-repo-url>
-cd biduyat-task
-
-docker-compose up --build
+git clone https://github.com/SagarHedav/task-1.git
+cd task-1
 ```
 
-| Service  | URL                          |
-|----------|------------------------------|
-| Frontend | http://localhost:3000        |
-| Backend  | http://localhost:5000        |
-
----
-
-## 🖥️ Running Locally (without Docker)
-
-### Backend
+### 2. Setup Backend
 ```bash
 cd backend
 npm install
-npm run dev   # runs on http://localhost:5000
+# Configure your .env (DATABASE_URL, JWT_SECRET)
+node server.js
 ```
 
-### Frontend
+### 3. Setup Frontend
 ```bash
 cd frontend
 npm install
-npm run dev   # runs on http://localhost:5173
+# Configure .env (VITE_API_URL)
+npm run dev
 ```
 
----
+## 🌍 Deployment
 
-## 📡 API Endpoints
-
-**Base URL:** `http://localhost:5000/api`
-
-### 🔒 Authentication (Public)
-
-#### `POST /api/auth/register`
-Creates a new user account.
-**Request Body:**
-```json
-{
-  "username": "johndoe",
-  "password": "mysecurepassword"
-}
-```
-**Response `200`:** `{ "success": true, "token": "jwt_string", "user": { "id": 1, "username": "johndoe" } }`
-
-#### `POST /api/auth/login`
-Authenticates a user and returns a JWT token.
-**Request Body:** Same as register.
-**Response `200`:** `{ "success": true, "token": "jwt_string", "user": { "id": 1, "username": "johndoe" } }`
+- **Backend**: Recommended for [Render](https://render.com).
+- **Frontend**: Recommended for [Vercel](https://vercel.com) or [Netlify](https://netlify.com).
 
 ---
-
-### 📝 Tasks (Protected)
-> All task endpoints require an `Authorization: Bearer <token>` header.
-
-| Field        | Type     | Description                         |
-|-------------|----------|-------------------------------------|
-| `id`         | integer  | Primary Key                         |
-| `user_id`    | integer  | Foreign Key to `users`              |
-| `title`      | string   | Task title (**required**)           |
-| `description`| string   | Task details (optional)             |
-| `status`     | string   | `"pending"` or `"completed"`        |
-| `created_at` | ISO 8601 | Creation timestamp (auto-generated) |
-
----
-
-### `GET /api/tasks`
-Returns all tasks.
-
-**Response `200`:**
-```json
-{
-  "success": true,
-  "count": 2,
-  "data": [
-    {
-      "id": "uuid-here",
-      "title": "My Task",
-      "description": "Task details",
-      "status": "pending",
-      "created_at": "2024-01-01T10:00:00.000Z"
-    }
-  ]
-}
-```
-
----
-
-### `GET /api/tasks/:id`
-Returns a single task by ID.
-
-**Response `200`:** `{ "success": true, "data": { ...task } }`  
-**Response `404`:** `{ "success": false, "error": "Task not found" }`
-
----
-
-### `POST /api/tasks`
-Creates a new task.
-
-**Request Body:**
-```json
-{
-  "title": "Buy groceries",
-  "description": "Milk, eggs, bread",
-  "status": "pending"
-}
-```
-
-**Validation:** `title` is required and cannot be empty.
-
-**Response `201`:** `{ "success": true, "data": { ...newTask } }`  
-**Response `400`:** `{ "success": false, "error": "Title is required and cannot be empty." }`
-
----
-
-### `PUT /api/tasks/:id`
-Updates an existing task (partial updates supported).
-
-**Request Body:**
-```json
-{
-  "title": "Updated title",
-  "description": "Updated description",
-  "status": "completed"
-}
-```
-
-**Response `200`:** `{ "success": true, "data": { ...updatedTask } }`  
-**Response `404`:** `{ "success": false, "error": "Task not found" }`
-
----
-
-### `PATCH /api/tasks/:id/toggle`
-Toggles task status between `pending` ↔ `completed`.
-
-**Response `200`:** `{ "success": true, "data": { ...task } }`
-
----
-
-### `DELETE /api/tasks/:id`
-Deletes a task by ID.
-
-**Response `200`:** `{ "success": true, "message": "Task deleted successfully", "data": { ...task } }`  
-**Response `404`:** `{ "success": false, "error": "Task not found" }`
-
----
-
-### `GET /health`
-Health check endpoint.
-
-**Response:** `{ "status": "ok", "timestamp": "..." }`
-
----
-
-## ✅ Validation Rules
-
-| Field   | Rule                          |
-|---------|-------------------------------|
-| `title` | Required, cannot be empty     |
-| `status`| Must be `pending` or `completed` (defaults to `pending`) |
-
----
-
-## 🐳 Docker Architecture
-
-```
-docker-compose.yml
-├── backend  (Node.js 18-alpine → port 5000)
-└── frontend (Node.js build → Nginx → port 3000)
-```
-
-Nginx in the frontend container also proxies `/api/*` requests to the backend service, so the frontend and API share the same origin when accessed via Docker.
-
----
-
-## 🗂️ Project Structure
-
-```
-biduyat-task/
-├── backend/
-│   ├── src/routes/tasks.js   # CRUD API routes
-│   ├── server.js             # Express entry point
-│   ├── package.json
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── api/tasks.js       # Axios API client
-│   │   ├── components/
-│   │   │   ├── TaskCard.jsx
-│   │   │   └── AddTaskModal.jsx
-│   │   ├── App.jsx
-│   │   └── index.css
-│   ├── nginx.conf
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml
-├── .gitignore
-└── README.md
-```
-
----
-
-## 🛠️ Tech Stack
-
-| Layer    | Technology             |
-|----------|------------------------|
-| Backend  | Node.js, Express       |
-| Frontend | React, Vite, Tailwind  |
-| Styling  | Tailwind CSS           |
-| HTTP     | Axios                  |
-| Server   | Nginx                  |
-| Containers | Docker, docker-compose |
-| VCS      | Git                    |
+© 2026 TaskFlow. Crafted for premium productivity.

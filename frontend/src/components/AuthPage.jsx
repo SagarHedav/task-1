@@ -49,9 +49,9 @@ export default function AuthPage({ onLogin, onClose }) {
           
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition bg-white/5 hover:bg-white/10 p-2 rounded-full"
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition bg-[var(--color-surface-container-high)]/40 hover:bg-[var(--color-surface-bright)] rounded-full"
           >
-            <span className="material-symbols-outlined text-[18px]">close</span>
+            <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
 
           <div className="flex flex-col gap-2">

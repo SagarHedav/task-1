@@ -96,10 +96,10 @@ export default function CalendarView({ user }) {
             {format(currentDate, 'MMMM yyyy')}
           </h2>
           <div className="flex gap-2">
-            <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--color-surface-container-high)] text-[var(--color-outline)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-bright)] transition-colors border border-[var(--color-outline-variant)]/30">
+            <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-bright)] transition-colors border border-[var(--color-outline-variant)]/30">
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
-            <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--color-surface-container-high)] text-[var(--color-outline)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-bright)] transition-colors border border-[var(--color-outline-variant)]/30">
+            <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-bright)] transition-colors border border-[var(--color-outline-variant)]/30">
               <span className="material-symbols-outlined text-[20px]">chevron_right</span>
             </button>
           </div>
@@ -108,7 +108,7 @@ export default function CalendarView({ user }) {
         {/* Days Header */}
         <div className="grid grid-cols-7 gap-1 mb-4">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-            <div key={d} className="text-center text-xs font-label uppercase tracking-widest text-[var(--color-outline)] py-2">
+            <div key={d} className="text-center text-xs font-label uppercase tracking-widest text-[var(--color-on-surface-variant)] opacity-60 py-2">
               {d}
             </div>
           ))}
@@ -150,7 +150,7 @@ export default function CalendarView({ user }) {
           <div className="mb-6 flex items-center justify-between border-b border-[var(--color-outline-variant)]/20 pb-6">
             <div>
               <h3 className="text-xl font-headline font-semibold text-[var(--color-on-surface)] tracking-tight">{format(selectedDate, 'EEEE')}</h3>
-              <p className="text-sm font-label text-[var(--color-outline)] tracking-wide">{format(selectedDate, 'MMMM d, yyyy')}</p>
+              <p className="text-sm font-label text-[var(--color-on-surface-variant)] opacity-60 tracking-wide">{format(selectedDate, 'MMMM d, yyyy')}</p>
             </div>
             <button
               onClick={() => setShowEventModal(true)}
@@ -180,7 +180,10 @@ export default function CalendarView({ user }) {
                       {ev.description && <p className="mt-2 text-xs font-body text-[var(--color-on-surface-variant)]">{ev.description}</p>}
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteEvent(ev.id)} className="text-[var(--color-outline)] opacity-0 group-hover:opacity-100 hover:text-[var(--color-error-dim)] transition-colors">
+                  <button 
+                    onClick={() => handleDeleteEvent(ev.id)} 
+                    className="text-[var(--color-on-surface-variant)] opacity-0 group-hover:opacity-60 hover:opacity-100 hover:text-[var(--color-error)] transition-all p-2 rounded-full hover:bg-[var(--color-error-container)]/20"
+                  >
                     <span className="material-symbols-outlined text-[18px]">delete</span>
                   </button>
                 </div>
