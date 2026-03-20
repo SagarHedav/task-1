@@ -1,43 +1,46 @@
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-
 const router = express.Router();
+const db = require('../db/db');
+const auth = require('../middleware/auth');
 
-// In-memory task store
-let tasks = [
-  {
-    id: uuidv4(),
-    title: 'Welcome to Task Manager!',
-    description: 'You can create, update, delete and mark tasks as completed.',
-    status: 'pending',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: uuidv4(),
-    title: 'Explore the API',
-    description: 'Check the README.md for full API documentation and endpoints.',
-    status: 'completed',
-    created_at: new Date().toISOString(),
-  },
-];
+// Apply auth middleware to all tasks routes
+router.use(auth);
 
 // GET /api/tasks — get all tasks
-router.get('/', (req, res) => {
-  res.json({ success: true, count: tasks.length, data: tasks });
+router.get('/', async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC',
+      [req.user.id]
+    );
+    res.json({ success: true, count: result.rows.length, data: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
 });
 
 // GET /api/tasks/:id — get a single task
-router.get('/:id', (req, res) => {
-  const task = tasks.find((t) => t.id === req.params.id);
-  if (!task) return res.status(404).json({ success: false, error: 'Task not found' });
-  res.json({ success: true, data: task });
+router.get('/:id', async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM tasks WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Task not found' });
+    }
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
 });
 
 // POST /api/tasks — create a new task
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { title, description, status } = req.body;
 
-  // Validation: title must not be empty
   if (!title || title.trim() === '') {
     return res.status(400).json({ success: false, error: 'Title is required and cannot be empty.' });
   }
@@ -45,57 +48,88 @@ router.post('/', (req, res) => {
   const validStatuses = ['pending', 'completed'];
   const taskStatus = validStatuses.includes(status) ? status : 'pending';
 
-  const newTask = {
-    id: uuidv4(),
-    title: title.trim(),
-    description: description ? description.trim() : '',
-    status: taskStatus,
-    created_at: new Date().toISOString(),
-  };
-
-  tasks.push(newTask);
-  res.status(201).json({ success: true, data: newTask });
+  try {
+    const result = await db.query(
+      'INSERT INTO tasks (user_id, title, description, status) VALUES ($1, $2, $3, $4) RETURNING *',
+      [req.user.id, title.trim(), description ? description.trim() : '', taskStatus]
+    );
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
 });
 
 // PUT /api/tasks/:id — update a task fully
-router.put('/:id', (req, res) => {
-  const index = tasks.findIndex((t) => t.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Task not found' });
-
+router.put('/:id', async (req, res) => {
   const { title, description, status } = req.body;
 
   if (title !== undefined && title.trim() === '') {
     return res.status(400).json({ success: false, error: 'Title cannot be empty.' });
   }
 
-  const validStatuses = ['pending', 'completed'];
+  try {
+    const taskRes = await db.query('SELECT * FROM tasks WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (taskRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Task not found' });
+    }
+    const task = taskRes.rows[0];
 
-  tasks[index] = {
-    ...tasks[index],
-    title: title !== undefined ? title.trim() : tasks[index].title,
-    description: description !== undefined ? description.trim() : tasks[index].description,
-    status: status && validStatuses.includes(status) ? status : tasks[index].status,
-  };
+    const updatedTitle = title !== undefined ? title.trim() : task.title;
+    const updatedDesc = description !== undefined ? description.trim() : task.description;
+    const validStatuses = ['pending', 'completed'];
+    const updatedStatus = status && validStatuses.includes(status) ? status : task.status;
 
-  res.json({ success: true, data: tasks[index] });
+    const result = await db.query(
+      'UPDATE tasks SET title = $1, description = $2, status = $3 WHERE id = $4 AND user_id = $5 RETURNING *',
+      [updatedTitle, updatedDesc, updatedStatus, req.params.id, req.user.id]
+    );
+
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
 });
 
 // PATCH /api/tasks/:id/toggle — toggle task status
-router.patch('/:id/toggle', (req, res) => {
-  const index = tasks.findIndex((t) => t.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Task not found' });
+router.patch('/:id/toggle', async (req, res) => {
+  try {
+    const taskRes = await db.query('SELECT * FROM tasks WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (taskRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Task not found' });
+    }
 
-  tasks[index].status = tasks[index].status === 'pending' ? 'completed' : 'pending';
-  res.json({ success: true, data: tasks[index] });
+    const task = taskRes.rows[0];
+    const newStatus = task.status === 'pending' ? 'completed' : 'pending';
+
+    const result = await db.query(
+      'UPDATE tasks SET status = $1 WHERE id = $2 AND user_id = $3 RETURNING *',
+      [newStatus, req.params.id, req.user.id]
+    );
+
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
 });
 
 // DELETE /api/tasks/:id — delete a task
-router.delete('/:id', (req, res) => {
-  const index = tasks.findIndex((t) => t.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Task not found' });
-
-  const deleted = tasks.splice(index, 1)[0];
-  res.json({ success: true, message: 'Task deleted successfully', data: deleted });
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await db.query(
+      'DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING *',
+      [req.params.id, req.user.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Task not found' });
+    }
+    res.json({ success: true, message: 'Task deleted successfully', data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
 });
 
 module.exports = router;

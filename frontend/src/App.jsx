@@ -1,34 +1,67 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, CheckSquare, Loader2, AlertCircle, RefreshCw, ClipboardList } from 'lucide-react';
+import { Plus, CheckSquare, Loader2, AlertCircle, RefreshCw, ClipboardList, LogOut } from 'lucide-react';
 import TaskCard from './components/TaskCard';
 import AddTaskModal from './components/AddTaskModal';
+import AuthPage from './components/AuthPage';
 import { fetchTasks, createTask, toggleTask, deleteTask } from './api/tasks';
+import { fetchCurrentUser } from './api/auth';
 
 const FILTERS = ['All', 'Pending', 'Completed'];
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
+
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('All');
 
+  // Check auth on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('taskflow_token');
+      if (token) {
+        try {
+          const res = await fetchCurrentUser(token);
+          setUser(res.data.user);
+        } catch {
+          localStorage.removeItem('taskflow_token');
+        }
+      }
+      setAuthChecking(false);
+    };
+    checkAuth();
+  }, []);
+
   const loadTasks = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     setError('');
     try {
       const res = await fetchTasks();
       setTasks(res.data.data);
-    } catch {
-      setError('Could not connect to the API. Make sure the backend is running.');
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        handleLogout();
+      } else {
+        setError('Could not connect to the API. Make sure the backend is running.');
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('taskflow_token');
+    setUser(null);
+    setTasks([]);
+  };
 
   const handleAdd = async (data) => {
     const res = await createTask(data);
@@ -45,6 +78,18 @@ export default function App() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
+  if (authChecking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+        <Loader2 size={32} className="animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage onLogin={(u) => setUser(u)} />;
+  }
+
   const filtered = tasks.filter((t) => {
     if (filter === 'Pending') return t.status === 'pending';
     if (filter === 'Completed') return t.status === 'completed';
@@ -57,19 +102,27 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-950">
       {/* Hero header */}
-      <header className="relative overflow-hidden border-b border-gray-800/60 bg-gray-900/50 px-6 py-10 text-center backdrop-blur-sm">
-        {/* Decorative blobs */}
+      <header className="relative overflow-hidden border-b border-gray-800/60 bg-gray-900/50 px-6 py-8 text-center backdrop-blur-sm">
         <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-indigo-700/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-10 right-1/4 h-40 w-40 rounded-full bg-purple-700/20 blur-2xl" />
 
-        <div className="relative">
+        {/* Top bar with username and logout */}
+        <div className="absolute right-4 top-4 flex flex-col items-end sm:flex-row sm:items-center sm:gap-4 gap-2">
+          <span className="text-sm font-medium text-gray-400">Hello, <span className="text-indigo-400">{user.username}</span></span>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-800 bg-gray-900 px-3 py-1.5 text-xs text-gray-400 transition hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
+          >
+            <LogOut size={14} /> Logout
+          </button>
+        </div>
+
+        <div className="relative mt-4">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-900/50">
             <ClipboardList size={26} className="text-white" />
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-white">
             Task<span className="text-indigo-400">Flow</span>
           </h1>
-          <p className="mt-2 text-sm text-gray-500">Create, organise, and crush your tasks.</p>
 
           {/* Stats */}
           {!loading && !error && (
@@ -96,12 +149,10 @@ export default function App() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         {/* Toolbar */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Filter tabs */}
           <div className="flex gap-1 rounded-xl bg-gray-900 p-1 border border-gray-800">
             {FILTERS.map((f) => (
               <button
                 key={f}
-                id={`filter-${f.toLowerCase()}`}
                 onClick={() => setFilter(f)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   filter === f
@@ -114,10 +165,8 @@ export default function App() {
             ))}
           </div>
 
-          {/* Add + Refresh */}
           <div className="flex items-center gap-2">
             <button
-              id="refresh-btn"
               onClick={loadTasks}
               className="rounded-xl border border-gray-800 p-2.5 text-gray-500 transition hover:border-indigo-500/40 hover:text-indigo-400"
               title="Refresh tasks"
@@ -125,12 +174,10 @@ export default function App() {
               <RefreshCw size={16} />
             </button>
             <button
-              id="add-task-btn"
               onClick={() => setShowModal(true)}
               className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-900/40 transition hover:bg-indigo-500 active:scale-95"
             >
-              <Plus size={16} />
-              Add Task
+              <Plus size={16} /> Add Task
             </button>
           </div>
         </div>
@@ -176,7 +223,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Modal */}
       {showModal && (
         <AddTaskModal onAdd={handleAdd} onClose={() => setShowModal(false)} />
       )}

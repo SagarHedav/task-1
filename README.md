@@ -1,6 +1,6 @@
-# TaskFlow — Simple Task Manager API + UI
+# TaskFlow v2 — Authentication + PostgreSQL Task Manager
 
-A full-stack task management application built with **Node.js + Express** (REST API), **React + Tailwind CSS** (UI), and **Docker** for containerization.
+A full-stack task management application featuring **User Authentication (JWT)** and **PostgreSQL (NeonDB)** data persistence. Built with **Node.js + Express**, **React + Tailwind CSS v4**, and **Docker**.
 
 ---
 
@@ -43,10 +43,33 @@ npm run dev   # runs on http://localhost:5173
 
 **Base URL:** `http://localhost:5000/api`
 
-### Task Fields
+### 🔒 Authentication (Public)
+
+#### `POST /api/auth/register`
+Creates a new user account.
+**Request Body:**
+```json
+{
+  "username": "johndoe",
+  "password": "mysecurepassword"
+}
+```
+**Response `200`:** `{ "success": true, "token": "jwt_string", "user": { "id": 1, "username": "johndoe" } }`
+
+#### `POST /api/auth/login`
+Authenticates a user and returns a JWT token.
+**Request Body:** Same as register.
+**Response `200`:** `{ "success": true, "token": "jwt_string", "user": { "id": 1, "username": "johndoe" } }`
+
+---
+
+### 📝 Tasks (Protected)
+> All task endpoints require an `Authorization: Bearer <token>` header.
+
 | Field        | Type     | Description                         |
 |-------------|----------|-------------------------------------|
-| `id`         | string   | UUID (auto-generated)               |
+| `id`         | integer  | Primary Key                         |
+| `user_id`    | integer  | Foreign Key to `users`              |
 | `title`      | string   | Task title (**required**)           |
 | `description`| string   | Task details (optional)             |
 | `status`     | string   | `"pending"` or `"completed"`        |
